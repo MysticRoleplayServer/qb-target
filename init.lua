@@ -15,6 +15,9 @@ end
 -- Settings
 -------------------------------------------------------------------------------
 
+local Allowrefuel = false
+local AllowElectricRefuel = false
+
 Config = {}
 
 -- It's possible to interact with entities through walls so this should be low
@@ -27,13 +30,13 @@ Config.Debug = false
 Config.Standalone = false
 
 -- Enable outlines around the entity you're looking at
-Config.EnableOutline = true
+Config.EnableOutline = false
 
 -- Whether to have the target as a toggle or not
 Config.Toggle = false
 
 -- Draw a Sprite on the center of a PolyZone to hint where it's located
-Config.DrawSprite = true
+Config.DrawSprite = false
 
 -- The default distance to draw the Sprite
 Config.DrawDistance = 10.0
@@ -81,7 +84,30 @@ Config.PolyZones = {
 }
 
 Config.TargetBones = {
-
+	["trunk"] = {
+		bones = {
+			"boot"
+		},
+		options = {
+			{
+				type = "client",
+				event = "cdn-fuel:client:SendMenuToServer",
+				icon = "fas fa-gas-pump",
+				label = "Insert Nozzle",
+				canInteract = function() return Allowrefuel end
+			},
+			{
+				type = "client",
+				action = function()
+					TriggerEvent('cdn-fuel:client:electric:RefuelMenu')
+				end,
+				icon = "fas fa-bolt",
+				label = "Insert Electric Nozzle",
+				canInteract = function() return AllowElectricRefuel end
+			},
+		},
+		distance = 3.0
+	},
 }
 
 Config.TargetModels = {
@@ -116,6 +142,22 @@ local function GangCheck() return true end
 local function JobTypeCheck() return true end
 local function ItemCheck() return true end
 local function CitizenCheck() return true end
+
+local function AllowRefuel(state, electric) 
+    if state then
+		if electric then
+			AllowElectricRefuel = true
+		else
+        	Allowrefuel = true
+		end
+    else
+		if electric then
+			AllowElectricRefuel = false
+		else
+			Allowrefuel = false
+		end
+    end
+end exports('AllowRefuel', AllowRefuel)
 
 CreateThread(function()
 	local state = GetResourceState('qb-core')
